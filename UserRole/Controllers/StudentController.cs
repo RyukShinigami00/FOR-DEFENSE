@@ -83,7 +83,6 @@ namespace UserRoles.Controllers
                 _context.Enrollments.Add(enrollment);
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = $"Enrollment submitted successfully! You are assigned to Section {section}.";
                 return RedirectToAction("ViewEnrollment");
             }
             catch (Exception ex)
