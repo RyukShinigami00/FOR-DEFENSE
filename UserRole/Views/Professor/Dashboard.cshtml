@@ -295,6 +295,86 @@
         background: #dbeafe;
         color: #1e40af;
     }
+
+    /* Search Section Styles */
+    .search-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .search-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        flex: 1;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1em;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 50px 14px 45px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1em;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+    .clear-search {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 5px;
+        font-size: 1.1em;
+        transition: color 0.3s ease;
+    }
+
+        .clear-search:hover {
+            color: #ef4444;
+        }
+
+    .search-results-info {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #f1f5f9;
+        color: #64748b;
+        font-size: 0.95em;
+    }
+
+    #resultsCount {
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .students-table tr.hidden {
+        display: none;
+    }
 </style>
 
 <div class="dashboard-container">
@@ -409,25 +489,25 @@
 
             <div class="schedule-info">
                 <div class="schedule-item" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);">
-                  
+
                     <strong>@Model.ClassSchedule.StartTime</strong>
                     <span>Start Time</span>
                 </div>
 
                 <div class="schedule-item" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
-                   
+
                     <strong>@Model.ClassSchedule.Schedule</strong>
                     <span>Class Hours</span>
                 </div>
 
                 <div class="schedule-item" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
-                    
+
                     <strong>@Model.ClassSchedule.EndTime</strong>
                     <span>End Time</span>
                 </div>
 
                 <div class="schedule-item" style="background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);">
-                   
+
                     <strong>5 Hours</strong>
                     <span>Duration</span>
                 </div>
@@ -440,6 +520,22 @@
 
         @if (Model.Students.Any())
         {
+            <!-- Search Bar -->
+            <div class="search-section">
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search by student name, parent/guardian, contact, address, grade level, or section..." />
+                        <button class="clear-search" id="clearSearch" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="search-results-info">
+                    <span id="resultsCount">Showing @Model.TotalStudents student@(Model.TotalStudents != 1 ? "s" : "")</span>
+                </div>
+            </div>
+
             <div style="overflow-x: auto;">
                 <table class="students-table">
                     <thead>
@@ -460,7 +556,12 @@
                         }
                         @foreach (var student in Model.Students)
                         {
-                            <tr>
+                            <tr data-student-name="@student.StudentName.ToLower()"
+                                data-parent-name="@student.ParentName.ToLower()"
+                                data-contact="@student.ContactNumber.ToLower()"
+                                data-address="@student.Address.ToLower()"
+                                data-grade="@student.GradeLevel"
+                                data-section="@(student.Section.HasValue? student.Section.ToString() : "")">
                                 <td style="font-weight: 700; color: var(--primary);">@index</td>
                                 <td class="student-name">@student.StudentName</td>
                                 <td>
@@ -492,3 +593,103 @@
         }
     </div>
 </div>
+
+<script>
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearch');
+    const resultsCount = document.getElementById('resultsCount');
+    const studentRows = document.querySelectorAll('.students-table tbody tr');
+    const totalStudents = @Model.TotalStudents;
+
+    // Search functionality
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            const searchTerm = this.value.toLowerCase().trim();
+
+            // Show/hide clear button
+            if (clearSearchBtn) {
+                clearSearchBtn.style.display = searchTerm ? 'block' : 'none';
+            }
+
+            filterStudents();
+        });
+    }
+
+    // Clear search
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', function () {
+            if (searchInput) {
+                searchInput.value = '';
+                clearSearchBtn.style.display = 'none';
+                filterStudents();
+                searchInput.focus();
+            }
+        });
+    }
+
+    // Main filter function
+    function filterStudents() {
+        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        let visibleCount = 0;
+
+        studentRows.forEach(row => {
+            const studentName = row.dataset.studentName || '';
+            const parentName = row.dataset.parentName || '';
+            const contact = row.dataset.contact || '';
+            const address = row.dataset.address || '';
+            const grade = row.dataset.grade || '';
+            const section = row.dataset.section || '';
+
+            // Check search term
+            const matchesSearch = !searchTerm ||
+                studentName.includes(searchTerm) ||
+                parentName.includes(searchTerm) ||
+                contact.includes(searchTerm) ||
+                address.includes(searchTerm) ||
+                grade.includes(searchTerm) ||
+                section.includes(searchTerm);
+
+            // Show/hide row based on search
+            if (matchesSearch) {
+                row.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                row.classList.add('hidden');
+            }
+        });
+
+        // Update results count
+        if (resultsCount) {
+            if (visibleCount === totalStudents) {
+                resultsCount.textContent = `Showing all ${totalStudents} student${totalStudents !== 1 ? 's' : ''}`;
+            } else if (visibleCount === 1) {
+                resultsCount.textContent = `Showing 1 student`;
+            } else {
+                resultsCount.textContent = `Showing ${visibleCount} of ${totalStudents} students`;
+            }
+        }
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function (e) {
+        // Ctrl/Cmd + K to focus search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }
+
+        // Escape to clear search
+        if (e.key === 'Escape') {
+            if (searchInput && searchInput.value) {
+                searchInput.value = '';
+                if (clearSearchBtn) {
+                    clearSearchBtn.style.display = 'none';
+                }
+                filterStudents();
+            }
+        }
+    });
+</script>

@@ -1,34 +1,329 @@
-﻿@{
+﻿@using UserRoles.Models
+@{
     ViewData["Title"] = "Admin Panel";
+    var students = ViewBag.Students as List<Users> ?? new List<Users>();
+    var professors = ViewBag.Professors as List<Users> ?? new List<Users>();
 }
 
-<h1>@ViewData["Title"]</h1>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-<div class="alert alert-warning">
-    <strong>Admin Only:</strong> This page is only accessible to administrators.
-</div>
+<style>
+    body {
+        background: #f8fafc;
+    }
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h4>User Management</h4>
-            </div>
-            <div class="card-body">
-                <p>Manage users and their roles.</p>
-                <button class="btn btn-primary">Manage Users</button>
-            </div>
+    .admin-panel-container {
+        max-width: 1400px;
+        margin: 30px auto;
+        padding: 0 20px;
+    }
+
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+        .page-header h1 {
+            color: #1f2937;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+    .alert-warning {
+        background: #fef3c7;
+        border: 2px solid #f59e0b;
+        color: #92400e;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+    .main-credentials-container {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .credentials-section {
+        margin-bottom: 40px;
+    }
+
+        .credentials-section:last-child {
+            margin-bottom: 0;
+        }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+        .section-header h2 {
+            margin: 0;
+            color: #1f2937;
+            font-size: 1.8em;
+        }
+
+        .section-header i {
+            color: #6366f1;
+            font-size: 1.5em;
+        }
+
+    .info-note {
+        background: #eff6ff;
+        border-left: 4px solid #3b82f6;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        color: #1e40af;
+    }
+
+        .info-note i {
+            margin-right: 8px;
+        }
+
+    .credentials-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+        .credentials-table thead {
+            background: #f8fafc;
+        }
+
+        .credentials-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .credentials-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+
+        .credentials-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+    .email-credential {
+        font-weight: 600;
+        color: #6366f1;
+        font-family: 'Courier New', monospace;
+    }
+
+    .name-cell {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.75em;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-student {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .badge-professor {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #64748b;
+    }
+
+        .empty-state i {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-left: 4px solid #6366f1;
+    }
+
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #64748b;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #1f2937;
+        }
+</style>
+
+<div class="admin-panel-container">
+    <div class="page-header">
+        <h1>@ViewData["Title"]</h1>
+    </div>
+
+    <div class="alert alert-warning">
+        <strong><i class="fas fa-shield-alt"></i> Admin Only:</strong> This page is only accessible to administrators.
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <h3>Total Students</h3>
+            <div class="value">@students.Count</div>
+        </div>
+        <div class="stat-card">
+            <h3>Total Professors</h3>
+            <div class="value">@professors.Count</div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h4>System Settings</h4>
+
+    <!-- Login Credentials Container -->
+    <div class="main-credentials-container">
+        <!-- Students Login Credentials -->
+        <div class="credentials-section">
+            <div class="section-header">
+                <i class="fas fa-user-graduate"></i>
+                <h2>Student Login Credentials</h2>
             </div>
-            <div class="card-body">
-                <p>Configure system settings.</p>
-                <button class="btn btn-secondary">System Config</button>
+
+            <div class="info-note">
+                <i class="fas fa-info-circle"></i>
+                <strong>Note:</strong> Passwords are encrypted for security. Students use their email address as their username to login.
             </div>
+
+            @if (students.Any())
+            {
+                <div style="overflow-x: auto;">
+                    <table class="credentials-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Full Name</th>
+                                <th>Email / Username</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                var studentIndex = 1;
+                            }
+                            @foreach (var student in students)
+                            {
+                                <tr>
+                                    <td style="font-weight: 700; color: #6366f1;">@studentIndex</td>
+                                    <td class="name-cell">@student.FullName</td>
+                                    <td class="email-credential">@student.Email</td>
+                                    <td>
+                                        <span class="role-badge badge-student">@student.Role</span>
+                                    </td>
+                                </tr>
+                                studentIndex++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-user-slash"></i>
+                    <h3>No Students Found</h3>
+                    <p>There are currently no registered students in the system.</p>
+                </div>
+            }
+        </div>
+
+        <!-- Professors Login Credentials -->
+        <div class="credentials-section">
+            <div class="section-header">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <h2>Professor Login Credentials</h2>
+            </div>
+
+            <div class="info-note">
+                <i class="fas fa-info-circle"></i>
+                <strong>Note:</strong> Passwords are encrypted for security. Professors use their email address as their username to login.
+            </div>
+
+            @if (professors.Any())
+            {
+                <div style="overflow-x: auto;">
+                    <table class="credentials-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Full Name</th>
+                                <th>Email / Username</th>
+                                <th>Role</th>
+                                <th>Assigned Grade</th>
+                                <th>Assigned Section</th>
+                                <th>Subject</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                var professorIndex = 1;
+                            }
+                            @foreach (var professor in professors)
+                            {
+                                <tr>
+                                    <td style="font-weight: 700; color: #6366f1;">@professorIndex</td>
+                                    <td class="name-cell">@professor.FullName</td>
+                                    <td class="email-credential">@professor.Email</td>
+                                    <td>
+                                        <span class="role-badge badge-professor">@professor.Role</span>
+                                    </td>
+                                    <td>@(professor.AssignedGradeLevel ?? "Not assigned")</td>
+                                    <td>@(professor.AssignedSection.HasValue ? $"Section {professor.AssignedSection}" : "N/A")</td>
+                                    <td>@(professor.AssignedSubject ?? "N/A")</td>
+                                </tr>
+                                professorIndex++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-user-slash"></i>
+                    <h3>No Professors Found</h3>
+                    <p>There are currently no registered professors in the system.</p>
+                </div>
+            }
         </div>
     </div>
 </div>

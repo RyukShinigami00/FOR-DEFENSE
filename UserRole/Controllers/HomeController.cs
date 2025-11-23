@@ -37,8 +37,23 @@ namespace UserRoles.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        public IActionResult Admin()
+        public async Task<IActionResult> Admin()
         {
+            // Get all students
+            var students = await _context.Users
+                .Where(u => u.Role == "student")
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+
+            // Get all professors
+            var professors = await _context.Users
+                .Where(u => u.Role == "professor")
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+
+            ViewBag.Students = students;
+            ViewBag.Professors = professors;
+
             return View();
         }
 

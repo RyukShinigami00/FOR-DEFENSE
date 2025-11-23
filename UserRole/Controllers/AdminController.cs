@@ -97,7 +97,7 @@ namespace UserRoles.Controllers
                 query = query.Where(e => e.Status == status);
             }
 
-            var students = await query.OrderByDescending(e => e.EnrollmentDate).ToListAsync();
+            var students = await query.OrderBy(e => e.EnrollmentDate).ToListAsync();
             ViewBag.CurrentFilter = status;
 
             return View(students);
